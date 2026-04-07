@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Integrated Pest Control Management Audit System</title>
+    <link rel="stylesheet" href="src/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="src/config.js"></script>
+    <script src="src/utils.js"></script>
+    <script src="src/auth.js"></script>
+    <style>
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background-color: #f1f5f9;
+        }
+        .login-container {
+            width: 100%;
+            max-width: 400px;
+            padding: 2rem;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+        .login-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .login-logo {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 1rem;
+        }
+        .login-header h1 {
+            font-size: 1.5rem;
+            color: #1e293b;
+            margin-bottom: 0.5rem;
+        }
+        .login-header p {
+            color: #64748b;
+            font-size: 0.875rem;
+        }
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #334155;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: border-color 0.15s ease-in-out;
+        }
+        .form-group input:focus {
+            outline: none;
+            border-color: #10b981;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+        }
+        .btn-login {
+            width: 100%;
+            padding: 0.875rem;
+            background-color: #10b981;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.15s ease-in-out;
+        }
+        .btn-login:hover {
+            background-color: #059669;
+        }
+        .btn-login:disabled {
+            background-color: #94a3b8;
+            cursor: not-allowed;
+        }
+        .error-message {
+            color: #ef4444;
+            font-size: 0.875rem;
+            margin-bottom: 1rem;
+            text-align: center;
+            min-height: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-container fade-in">
+        <div class="login-header">
+            <img src="src/nairobi_logo.png" alt="Nairobi City County Logo" class="login-logo">
+            <h1>Integrated Pest Control Management Audit System</h1>
+            <p>Enter your credentials to access the portal</p>
+        </div>
+
+        <form id="login-form">
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" required autocomplete="email" placeholder="you@nairobi.go.ke">
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" required autocomplete="current-password" placeholder="••••••••">
+            </div>
+            
+            <div id="error-message" class="error-message"></div>
+            
+            <button type="submit" id="login-btn" class="btn-login">Sign In</button>
+        </form>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            // If already logged in, redirect to correct dashboard
+            const { user, profile } = await AuthProvider.getCurrentUser();
+            if (user && profile && profile.is_active) {
+                if (profile.role === 'super_admin') window.location.href = 'superadmin.html';
+                else if (profile.role === 'admin') window.location.href = 'admin.html';
+                else if (profile.role === 'nccg_officer') window.location.href = 'nccg.html';
+                else if (profile.role === 'finance_manager') window.location.href = 'finance.html';
+                else window.location.href = 'index.html';
+            }
+
+            const loginForm = document.getElementById('login-form');
+            const loginBtn = document.getElementById('login-btn');
+            const errorDiv = document.getElementById('error-message');
+
+            loginForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const email = document.getElementById('email').value.trim();
+                const password = document.getElementById('password').value;
+
+                if (!email || !password) return;
+
+                errorDiv.textContent = '';
+                loginBtn.disabled = true;
+                loginBtn.textContent = 'Signing in...';
+
+                try {
+                    const profile = await AuthProvider.login(email, password);
+                    
+                    if (profile.role === 'super_admin') {
+                        window.location.href = 'superadmin.html';
+                    } else if (profile.role === 'admin') {
+                        window.location.href = 'admin.html';
+                    } else if (profile.role === 'nccg_officer') {
+                        window.location.href = 'nccg.html';
+                    } else if (profile.role === 'finance_manager') {
+                        window.location.href = 'finance.html';
+                    } else {
+                        window.location.href = 'index.html';
+                    }
+                } catch (err) {
+                    errorDiv.textContent = err.message || 'Invalid credentials. Please try again.';
+                    loginBtn.disabled = false;
+                    loginBtn.textContent = 'Sign In';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

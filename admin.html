@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Integrated Pest Control Management Audit System</title>
+    <link rel="stylesheet" href="src/style.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        :root {
+            --sidebar-width: 260px;
+        }
+        body {
+            background-color: #f8fafc;
+            color: #1e293b; /* Explicit dark text for visibility */
+            display: flex;
+            min-height: 100vh;
+        }
+        .sidebar {
+            width: var(--sidebar-width);
+            background: #1e293b;
+            color: white;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+        }
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            padding: 2rem;
+            width: calc(100% - var(--sidebar-width));
+        }
+        .nav-list {
+            list-style: none;
+            padding: 0;
+            margin-top: 2rem;
+        }
+        .nav-item {
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .nav-item:hover, .nav-item.active {
+            background: #334155;
+        }
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .stat-card h3 {
+            font-size: 0.875rem;
+            color: #64748b;
+            margin-bottom: 0.5rem;
+        }
+        .stat-card .value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1e293b;
+        }
+        .data-table-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th {
+            background: #f1f5f9;
+            padding: 1rem;
+            text-align: left;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: #475569;
+            font-weight: 600;
+        }
+        td {
+            padding: 1rem;
+            border-top: 1px solid #f1f5f9;
+            font-size: 0.875rem;
+            color: #1e293b !important;
+        }
+        td a, td button.btn-text { color: #2563eb !important; }
+        .badge {
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        .badge-green { background: #dcfce7; color: #166534; }
+        .badge-blue { background: #dbeafe; color: #1e40af; }
+        
+        #admin-map {
+            height: 500px;
+            border-radius: 12px;
+            margin-top: 1rem;
+        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* Modal styling */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            align-items: center;
+            justify-content: center;
+        }
+        .modal.open { display: flex !important; }
+        .modal-content {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 550px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal-content h2 { margin: 0.5rem 0; color: #1e293b; font-size: 1.5rem; font-weight: 800; }
+        .modal-subtitle { color: #64748b; font-size: 0.9rem; margin-bottom: 2rem; }
+        .form-group label { 
+            display: block; font-weight: 700; font-size: 0.75rem; color: #1e293b !important; 
+            margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em; 
+        }
+        .form-group input { 
+            width: 100% !important; padding: 0.8rem 1rem !important; background: #ffffff !important; 
+            border: 2px solid #e2e8f0 !important; border-radius: 10px !important; 
+            color: #0f172a !important; font-size: 1rem !important; transition: all 0.2s;
+        }
+        .form-group input:focus { border-color: #10b981 !important; outline: none; box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1) !important; background: white !important; }
+        .input-helper { font-size: 0.75rem; color: #64748b; margin-top: 0.5rem; font-style: italic; }
+        .form-actions { display: flex; gap: 1rem; margin-top: 2.5rem; padding-top: 1.5rem; border-top: 1px solid #f1f5f9; }
+        .form-actions button { flex: 1; padding: 0.8rem; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .btn-primary { background: #10b981; color: white; border: none; }
+        .btn-primary:hover { background: #059669; transform: translateY(-1px); }
+        .btn-outline { background: white; color: #64748b; border: 1.5px solid #e2e8f0; }
+        .btn-outline:hover { background: #f8fafc; color: #1e293b; border-color: #cbd5e1; }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="logo-area">
+            <img src="src/nairobi_logo.png" alt="Logo" style="width: 50px; margin-bottom: 1rem;">
+            <h2 style="font-size: 1.1rem; font-weight: 600;">Admin Console</h2>
+            <p id="admin-zone" style="font-size: 0.75rem; color: #94a3b8;"></p>
+        </div>
+        
+        <ul class="nav-list">
+            <li class="nav-item active" data-tab="overview">📊 Overview</li>
+            <li class="nav-item" data-tab="inspectors">👥 Staff Registry</li>
+            <li class="nav-item" data-tab="reports">📋 All Reports</li>
+            <li class="nav-item" data-tab="declined">❌ Declined Reports</li>
+            <li class="nav-item" data-tab="payments">💰 Revenue &amp; Overdue</li>
+            <li class="nav-item" data-tab="map">🗺️ Map View</li>
+        </ul>
+
+        <div style="margin-top: auto;">
+            <div id="header-user-name" style="font-size: 0.85rem; margin-bottom: 0.5rem; opacity: 0.8;">Admin User</div>
+            <button id="btn-logout" class="btn-primary" style="width: 100%; background: #ef4444;">Logout</button>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <div class="admin-header">
+            <h1 id="tab-title">Dashboard Overview</h1>
+            <div id="action-btn-area"></div>
+        </div>
+
+        <!-- Overview Tab -->
+        <section id="overview" class="tab-content active">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>Total Inspections</h3>
+                    <div class="value" id="stat-total-inspections">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Active PHOs</h3>
+                    <div class="value" id="stat-active-inspectors">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Zone Coverage</h3>
+                    <div class="value" id="stat-zone-name">-</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Revenue Collected</h3>
+                    <div class="value" id="stat-total-revenue" style="font-size:1rem;">KES 0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Outstanding</h3>
+                    <div class="value" id="stat-total-outstanding">0</div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2>Recent Activity</h2>
+                <div class="data-table-container">
+                    <table id="recent-reports-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Business</th>
+                                <th>PHO</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Filled by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Inspectors Tab -->
+        <section id="inspectors" class="tab-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h2>Staff Registry</h2>
+                <button class="btn-primary" id="btn-add-inspector">+ Invite Personnel</button>
+            </div>
+            <div class="data-table-container">
+                <table id="inspectors-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Badge No.</th>
+                            <th>Assigned Zone</th>
+                            <th>Assigned NCCG</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Reports Tab -->
+        <section id="reports" class="tab-content">
+            <div class="card" style="margin-bottom: 1.5rem;">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Filter by Date Range</label>
+                        <input type="date" id="report-filter-start">
+                    </div>
+                    <div class="form-group">
+                        <label>&nbsp;</label>
+                        <input type="date" id="report-filter-end">
+                    </div>
+                    <div class="form-group">
+                        <label>PHO</label>
+                        <select id="report-filter-inspector">
+                            <option value="all">All PHOs</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="data-table-container">
+                <table id="full-reports-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Business</th>
+                            <th>PHO</th>
+                            <th>Service</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Declined Reports Tab -->
+        <section id="declined" class="tab-content">
+            <div class="card" style="margin-bottom: 2rem;">
+                <h2>Declined by NCCG</h2>
+                <div class="data-table-container">
+                    <table id="declined-reports-table">
+                        <thead>
+                            <tr>
+                                <th>Date Submitted</th>
+                                <th>Business</th>
+                                <th>PHO</th>
+                                <th>Reason</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Payments Tab -->
+        <section id="payments" class="tab-content">
+            <div class="card" style="margin-bottom: 2rem;">
+                <h2>Collections</h2>
+                <div class="data-table-container">
+                    <table id="collections-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Business</th>
+                                <th>Amount</th>
+                                <th>Receipt No.</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card">
+                <h2>Overdue Payments</h2>
+                <div class="data-table-container">
+                    <table id="overdue-table">
+                        <thead>
+                            <tr>
+                                <th>Business</th>
+                                <th>Due Date</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Map Tab -->
+        <section id="map" class="tab-content">
+            <div class="card">
+                <div id="admin-map"></div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Modal for Adding Inspector -->
+    <div id="inspector-modal" class="modal">
+        <div class="modal-content">
+            <div style="display: flex; flex-direction: column; align-items: center; margin-bottom: 1.5rem; text-align: center;">
+                <div style="width: 50px; height: 50px; background: #ecfdf5; color: #10b981; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 1rem;">👤</div>
+                <h2>Provision New PHO</h2>
+                <p class="modal-subtitle">Register a PHO and assign their operational area.</p>
+            </div>
+
+            <form id="add-inspector-form">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;">
+                    <div class="form-group" style="grid-column: span 2;">
+                        <label>Account Role</label>
+                        <select id="insp-role" required>
+                            <option value="inspector">Public Health Officer (PHO)</option>
+                            <option value="nccg_officer">NCCG Officer</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" style="grid-column: span 2;">
+                        <label>Full Legal Name</label>
+                        <input type="text" id="insp-name" placeholder="e.g. John Doe" required>
+                        <p class="input-helper">Used for digital report signatures.</p>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Work Email</label>
+                        <input type="email" id="insp-email" placeholder="john@nairobi.go.ke" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Login Password</label>
+                        <input type="password" id="insp-password" placeholder="••••••••" required minlength="6">
+                    </div>
+
+                    <div class="form-group">
+                        <label>System Badge ID</label>
+                        <input type="text" id="insp-badge" placeholder="NCC-2026-000">
+                        <p class="input-helper">Official identification number.</p>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Operational Zone</label>
+                        <select id="insp-zone" required>
+                            <option value="">Loading zones...</option>
+                        </select>
+                        <p class="input-helper">Assigns ward-level data filtering.</p>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn-outline" id="btn-close-modal">Dismiss</button>
+                    <button type="submit" class="btn-primary">Create Personnel Account</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Transfer Modal -->
+    <div id="transfer-modal" class="modal">
+        <div class="modal-content">
+            <button class="btn-close" id="btn-close-transfer">&times;</button>
+            <h2>Transfer Personnel</h2>
+            <p class="modal-subtitle">Re-assign inspector to a different administrative sub-county.</p>
+            
+            <input type="hidden" id="transfer-inspector-id">
+            
+            <div class="form-group">
+                <label>Target Sub-county (Zone)</label>
+                <select id="transfer-zone-select" required>
+                    <!-- Filled by JS -->
+                </select>
+                <p class="input-helper">This will immediately update their data visibility.</p>
+            </div>
+
+            <div style="margin-top: 1.5rem;">
+                <button class="btn-primary" id="btn-save-transfer" style="width: 100%;">Complete Transfer</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Allocate Modal -->
+    <div id="allocate-modal" class="modal">
+        <div class="modal-content">
+            <h2>Allocate to NCCG Officer</h2>
+            <p class="modal-subtitle">Assign this PHO to a specific NCCG Officer for report reviews.</p>
+            <form id="allocate-form">
+                <input type="hidden" id="allocate-user-id">
+                <div class="form-group">
+                    <label>Select NCCG Officer</label>
+                    <select id="allocate-nccg-select" required>
+                        <!-- Filled by JS -->
+                    </select>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-outline" onclick="document.getElementById('allocate-modal').classList.remove('open')">Cancel</button>
+                    <button type="submit" class="btn-primary">Assign PHO</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="src/config.js"></script>
+    <script src="src/utils.js"></script>
+    <script src="src/auth.js"></script>
+    <script src="src/admin.js"></script>
+</body>
+</html>

@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Integrated Pest Control Management Audit System</title>
+    <link rel="stylesheet" href="src/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <script src="src/config.js"></script>
+    <script src="src/utils.js"></script>
+    <script src="src/auth.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <header style="position: relative;">
+            <div style="position: absolute; top: 1rem; right: 1rem; text-align: right; font-size: 0.85rem; color: #64748b;">
+                <div>PHO: <strong id="header-user-name" style="color: #1e293b;">Loading...</strong></div>
+                <button id="btn-logout" class="btn-text" style="color: #ef4444; padding: 0.2rem 0; font-size: 0.8rem; border:none; background:transparent; cursor:pointer;">Logout</button>
+            </div>
+            <div class="logo-container">
+                <img src="src/nairobi_logo.png" alt="Nairobi City Government Logo" class="county-logo">
+            </div>
+            <h1>Nairobi City <span class="highlight">Government</span></h1>
+            <p>Integrated Pest Control Management Audit System - Official Dashboard</p>
+        </header>
+
+        <!-- Step 1: Select Client -->
+        <section id="step-1" class="card fade-in">
+            <h2>1. Select Client</h2>
+            <div class="search-box">
+                <input type="text" id="client-search" placeholder="Search by Business Name or Permit No..." autocomplete="off">
+                <div id="search-results" class="results-dropdown hidden"></div>
+            </div>
+
+            <div id="client-info" class="client-card hidden">
+                <div class="card-header">
+                    <h3 id="display-name">Client Details</h3>
+                    <button class="btn-text" id="change-client">Change</button>
+                </div>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <label>Business Name</label>
+                        <p id="info-business-name">-</p>
+                    </div>
+                    <div class="info-item">
+                        <label>Permit No</label>
+                        <p id="info-permit">-</p>
+                    </div>
+                    <div class="info-item">
+                        <label>Location</label>
+                        <p id="info-location">-</p>
+                    </div>
+                    <div class="info-item">
+                        <label>Contact Person</label>
+                        <p id="info-contact">-</p>
+                    </div>
+                </div>
+            </div>
+            <p class="helper-text" id="search-helper">Start typing to search through 35,000+ businesses.</p>
+        </section>
+
+        <form id="inspection-form" class="hidden">
+
+            <!-- Step 2: Inspection Details -->
+            <section id="step-2" class="card fade-in">
+                <h2>2. Inspection Details</h2>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="inspector-name">PHO Name</label>
+                        <input type="text" id="inspector-name" name="inspector_name" required placeholder="Full Name">
+                    </div>
+                    <div class="form-group">
+                        <label for="inspection-date">Date &amp; Time</label>
+                        <input type="datetime-local" id="inspection-date" name="inspection_date" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Personnel</label>
+                    <div class="tag-input-container">
+                        <input type="text" id="personnel-input" placeholder="Add name and press Enter...">
+                        <div id="personnel-tags" class="tag-list"></div>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="next-inspection-date">Next Inspection Date</label>
+                        <input type="date" id="next-inspection-date" name="next_inspection_date">
+                    </div>
+                    <div class="form-group">
+                        <!-- spacer -->
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Service Type</label>
+                    <div class="radio-grid">
+                        <label class="radio-item"><input type="radio" name="service_type" value="One Time Treatment"> One Time Treatment</label>
+                        <label class="radio-item"><input type="radio" name="service_type" value="Weekly"> Weekly</label>
+                        <label class="radio-item"><input type="radio" name="service_type" value="Bi-Weekly"> Bi-Weekly</label>
+                        <label class="radio-item"><input type="radio" name="service_type" value="Monthly"> Monthly</label>
+                        <label class="radio-item"><input type="radio" name="service_type" value="Bi-Monthly"> Bi-Monthly</label>
+                        <label class="radio-item"><input type="radio" name="service_type" value="Quarterly"> Quarterly</label>
+                        <label class="radio-item"><input type="radio" name="service_type" value="Yearly"> Yearly</label>
+                        <label class="radio-item"><input type="radio" name="service_type" value="Warranty/No Charge"> Warranty / No Charge</label>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Step 3: Areas & Pest Types -->
+            <section id="step-3" class="card fade-in">
+                <h2>3. Areas &amp; Pest Types</h2>
+
+                <div class="form-group">
+                    <label>Areas Affected</label>
+                    <div class="checkbox-grid">
+                        <label class="checkbox-item"><input type="checkbox" name="areas" value="Interior"> Interior</label>
+                        <label class="checkbox-item"><input type="checkbox" name="areas" value="Exterior"> Exterior</label>
+                        <label class="checkbox-item"><input type="checkbox" name="areas" value="Dispatch"> Dispatch</label>
+                        <label class="checkbox-item"><input type="checkbox" name="areas" value="Smoking Unit"> Smoking Unit</label>
+                        <label class="checkbox-item"><input type="checkbox" name="areas" value="Other" id="areas-other-cb"> Other</label>
+                    </div>
+                    <div id="areas-other-container" class="hidden" style="margin-top:0.6rem;">
+                        <input type="text" id="areas-other-input" placeholder="Type and press Enter to add multiple...">
+                        <div id="areas-other-tags" class="tag-list"></div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Pest Types Treated</label>
+                    <div class="checkbox-grid">
+                        <label class="checkbox-item"><input type="checkbox" name="pests" value="Cockroaches"> Cockroaches</label>
+                        <label class="checkbox-item"><input type="checkbox" name="pests" value="Rodents - Mice"> Mice</label>
+                        <label class="checkbox-item"><input type="checkbox" name="pests" value="Rodents - Rats"> Rats</label>
+                        <label class="checkbox-item"><input type="checkbox" name="pests" value="Ants"> Ants</label>
+                        <label class="checkbox-item"><input type="checkbox" name="pests" value="Bees"> Bees</label>
+                        <label class="checkbox-item"><input type="checkbox" name="pests" value="Spiders"> Spiders</label>
+                        <label class="checkbox-item"><input type="checkbox" name="pests" value="Wasps"> Wasps</label>
+                        <label class="checkbox-item"><input type="checkbox" name="pests" value="Fleas"> Fleas</label>
+                        <label class="checkbox-item"><input type="checkbox" name="pests" value="Mosquitoes"> Mosquitoes</label>
+                        <label class="checkbox-item"><input type="checkbox" name="pests" value="Silverfish"> Silverfish</label>
+                        <label class="checkbox-item"><input type="checkbox" name="pests" value="Bedbugs"> Bedbugs</label>
+                        <label class="checkbox-item"><input type="checkbox" name="pests" value="Other" id="pests-other-cb"> Other</label>
+                    </div>
+                    <div id="pests-other-container" class="hidden" style="margin-top:0.6rem;">
+                        <input type="text" id="pests-other-input" placeholder="Type and press Enter to add multiple...">
+                        <div id="pests-other-tags" class="tag-list"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Step 4: Chemicals & Treatment -->
+            <section id="step-4" class="card fade-in">
+                <h2>4. Chemicals &amp; Treatment</h2>
+
+                <div class="form-group">
+                    <label>Chemicals Used</label>
+                    <div class="checkbox-grid">
+                        <label class="checkbox-item"><input type="checkbox" name="chemicals_preset" value="FLOWERDS 4% EC (Pyrethrum Organic)"> FLOWERDS 4% EC</label>
+                        <label class="checkbox-item"><input type="checkbox" name="chemicals_preset" value="MOS-N-ROACH 100EC (Alphacypermethrine)"> MOS-N-ROACH 100EC</label>
+                        <label class="checkbox-item"><input type="checkbox" name="chemicals_preset" value="Advion Roach Gel 0.6% Indoxacarb"> Advion Roach Gel</label>
+                        <label class="checkbox-item"><input type="checkbox" name="chemicals_preset" value="GOLIATH GEL 0.05% Fipronil"> GOLIATH GEL</label>
+                        <label class="checkbox-item"><input type="checkbox" name="chemicals_preset" value="FENDONA 60SC Alphacypermethrin"> FENDONA 60SC</label>
+                        <label class="checkbox-item"><input type="checkbox" name="chemicals_preset" value="TOMCAT 0.005% Bromadiolone"> TOMCAT (Rodenticide)</label>
+                        <label class="checkbox-item"><input type="checkbox" name="chemicals_preset" value="Glue Boards/Monitor Traps"> Glue Boards / Monitor Traps</label>
+                    </div>
+                    <datalist id="chemical-datalist">
+                        <option value="FLOWERDS 4% EC (Pyrethrum Organic)">
+                        <option value="MOS-N-ROACH 100EC (Alphacypermethrine)">
+                        <option value="Advion Roach Gel 0.6% Indoxacarb">
+                        <option value="GOLIATH GEL 0.05% Fipronil">
+                        <option value="FENDONA 60SC Alphacypermethrin">
+                        <option value="TOMCAT 0.005% Bromadiolone">
+                        <option value="Glue Boards/Monitor Traps">
+                    </datalist>
+                    <div id="dosage-rows"></div>
+                    <button type="button" class="btn-add-dosage">+ Add Dosage Entry</button>
+                </div>
+
+                <div class="form-group">
+                    <label>Other Chemicals</label>
+                    <div class="tag-input-container">
+                        <input type="text" id="chemical-input" placeholder="Type and press Enter to add...">
+                        <div id="chemical-tags" class="tag-list"></div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Treatment Method</label>
+                    <div class="checkbox-grid">
+                        <label class="checkbox-item"><input type="checkbox" name="treatment_methods" value="Baiting"> Baiting</label>
+                        <label class="checkbox-item"><input type="checkbox" name="treatment_methods" value="Residual Spray"> Residual Spray</label>
+                        <label class="checkbox-item"><input type="checkbox" name="treatment_methods" value="Fogging"> Fogging</label>
+                        <label class="checkbox-item"><input type="checkbox" name="treatment_methods" value="Traps Set"> Traps Set</label>
+                        <label class="checkbox-item"><input type="checkbox" name="treatment_methods" value="Gel Application"> Gel Application</label>
+                        <label class="checkbox-item"><input type="checkbox" name="treatment_methods" value="Dusting"> Dusting</label>
+                        <label class="checkbox-item"><input type="checkbox" name="treatment_methods" value="Other" id="treatment-other-cb"> Other</label>
+                    </div>
+                    <div id="treatment-other-container" class="hidden" style="margin-top:0.6rem;">
+                        <input type="text" id="treatment-other-input" placeholder="Type and press Enter to add multiple...">
+                        <div id="treatment-other-tags" class="tag-list"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Step 5: Issues Found -->
+            <section id="step-5" class="card fade-in">
+                <h2>5. Issues Found</h2>
+                <div class="form-group">
+                    <div class="checkbox-grid">
+                        <label class="checkbox-item"><input type="checkbox" name="issues" value="Open gaps creating rodent harborage"> Open gaps — rodent harborage</label>
+                        <label class="checkbox-item"><input type="checkbox" name="issues" value="Missing drain strainer"> Missing drain strainer</label>
+                        <label class="checkbox-item"><input type="checkbox" name="issues" value="Gaps on pipe entry point"> Gaps on pipe entry point</label>
+                        <label class="checkbox-item"><input type="checkbox" name="issues" value="Gaps on door edges"> Gaps on door edges</label>
+                        <label class="checkbox-item"><input type="checkbox" name="issues" value="Wood/storage materials creating harborage"> Wood / storage harborage</label>
+                        <label class="checkbox-item"><input type="checkbox" name="issues" value="Open gaps on roof void"> Open gaps on roof void</label>
+                        <label class="checkbox-item"><input type="checkbox" name="issues" value="Gaps on external roof edges"> Gaps on external roof edges</label>
+                        <label class="checkbox-item"><input type="checkbox" name="issues" value="Protective clothing stored with packaging"> Protective clothing with packaging</label>
+                        <label class="checkbox-item"><input type="checkbox" name="issues" value="Other" id="issues-other-cb"> Other</label>
+                    </div>
+                    <div id="issues-other-container" class="hidden" style="margin-top:0.6rem;">
+                        <input type="text" id="issues-other-input" placeholder="Type and press Enter to add multiple...">
+                        <div id="issues-other-tags" class="tag-list"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Step 6: Pest Sightings -->
+            <section id="step-6" class="card fade-in">
+                <h2>6. Pest Sightings</h2>
+                <div class="form-group">
+                    <div class="sighting-row">
+                        <label class="checkbox-item"><input type="checkbox" id="sighting-rodents"> Rodent Activity</label>
+                    </div>
+                    <div class="sighting-row">
+                        <label class="checkbox-item"><input type="checkbox" id="sighting-bedbugs"> Bedbugs</label>
+                        <select id="bedbug-count" class="sighting-extra hidden">
+                            <option value="">Count range</option>
+                            <option value="1-10">1 – 10</option>
+                            <option value="11-20">11 – 20</option>
+                            <option value="21-50">21 – 50</option>
+                            <option value="50+">50+</option>
+                        </select>
+                    </div>
+                    <div class="sighting-row">
+                        <label class="checkbox-item"><input type="checkbox" id="sighting-other"> Other</label>
+                        <div id="sighting-other-container" class="hidden" style="flex:1;">
+                            <input type="text" id="sighting-other-input" class="sighting-extra" style="width:100%;margin-top:0;" placeholder="Describe pest and press Enter...">
+                            <div id="sighting-other-tags" class="tag-list"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Step 7: Sanitation Assessment -->
+            <section id="step-7" class="card fade-in">
+                <h2>7. Sanitation Assessment</h2>
+                <div class="rating-group">
+                    <div class="rating-row">
+                        <span class="rating-label">Housekeeping</span>
+                        <div class="rating-options">
+                            <label class="radio-item"><input type="radio" name="housekeeping" value="Good"> Good</label>
+                            <label class="radio-item"><input type="radio" name="housekeeping" value="Fair"> Fair</label>
+                            <label class="radio-item"><input type="radio" name="housekeeping" value="Poor"> Poor</label>
+                        </div>
+                    </div>
+                    <div class="rating-row">
+                        <span class="rating-label">Waste Management</span>
+                        <div class="rating-options">
+                            <label class="radio-item"><input type="radio" name="waste_management" value="Good"> Good</label>
+                            <label class="radio-item"><input type="radio" name="waste_management" value="Fair"> Fair</label>
+                            <label class="radio-item"><input type="radio" name="waste_management" value="Poor"> Poor</label>
+                        </div>
+                    </div>
+                    <div class="rating-row">
+                        <span class="rating-label">Stacking</span>
+                        <div class="rating-options">
+                            <label class="radio-item"><input type="radio" name="stacking" value="Good"> Good</label>
+                            <label class="radio-item"><input type="radio" name="stacking" value="Fair"> Fair</label>
+                            <label class="radio-item"><input type="radio" name="stacking" value="Poor"> Poor</label>
+                        </div>
+                    </div>
+                    <div class="rating-row">
+                        <span class="rating-label">Overall Sanitation</span>
+                        <div class="rating-options">
+                            <label class="radio-item"><input type="radio" name="overall_sanitation" value="Good"> Good</label>
+                            <label class="radio-item"><input type="radio" name="overall_sanitation" value="Fair"> Fair</label>
+                            <label class="radio-item"><input type="radio" name="overall_sanitation" value="Poor"> Poor</label>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Step 8: Recommendations & Notes -->
+            <section id="step-8" class="card fade-in">
+                <h2>8. Recommendations</h2>
+                <div class="form-group">
+                    <div class="checkbox-grid">
+                        <label class="checkbox-item"><input type="checkbox" name="recommendations" value="Screen windows to prevent pest entry"> Screen windows</label>
+                        <label class="checkbox-item"><input type="checkbox" name="recommendations" value="Seal all potential entry points"> Seal all entry points</label>
+                        <label class="checkbox-item"><input type="checkbox" name="recommendations" value="Enforce food safety pest restriction standards"> Food safety standards</label>
+                        <label class="checkbox-item"><input type="checkbox" name="recommendations" value="Other" id="recs-other-cb"> Other</label>
+                    </div>
+                    <div id="recs-other-container" class="hidden" style="margin-top:0.6rem;">
+                        <input type="text" id="recs-other-input" placeholder="Type and press Enter to add multiple...">
+                        <div id="recs-other-tags" class="tag-list"></div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="notes">Additional Notes / Observations</label>
+                    <textarea id="notes" name="notes" rows="4" placeholder="Any additional observations or recommendations..."></textarea>
+                </div>
+            </section>
+
+            <!-- Step 9: Upload Media -->
+            <section id="step-9" class="card fade-in">
+                <h2>9. Upload Media</h2>
+                <div class="upload-area" id="drop-zone">
+                    <div class="upload-icon">📸</div>
+                    <p>Click or drag photos of the affected areas</p>
+                    <input type="file" id="photo-upload" multiple accept="image/*" class="hidden">
+                    <button type="button" class="btn-outline" onclick="document.getElementById('photo-upload').click()">Capture / Browse</button>
+                    <div id="photo-preview" class="preview-grid"></div>
+                </div>
+            </section>
+
+            <!-- Step 10: Fee Calculation -->
+            <section id="step-10" class="card fade-in">
+                <h2>10. IPM Audit &amp; Certification Fee</h2>
+                <p style="font-size:0.85rem;color:#94a3b8;margin-bottom:1rem;">Finance Act 2023 — Nairobi City Government · 200 KES/SqM</p>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Premise Category</label>
+                        <select id="calc-category">
+                            <option value="">— Select Category —</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Premise Type</label>
+                        <select id="calc-premise" disabled>
+                            <option value="">— Select Premise —</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="fee-calc-breakdown" class="fee-calc-card hidden">
+                    <div class="fee-calc-header">IPM Audit &amp; Certification Fee</div>
+                    <div class="fee-calc-row">
+                        <span>NCCG Share (25%)</span>
+                        <span id="fee-nccg-amount">KES 0</span>
+                    </div>
+                    <div class="fee-calc-row">
+                        <span>Vendor Share (75%)</span>
+                        <span id="fee-vendor-amount">KES 0</span>
+                    </div>
+                    <div class="fee-calc-total-row">
+                        <span>Total IPM Fee</span>
+                        <span id="fee-calc-total">KES 0</span>
+                    </div>
+                    <div class="fee-calc-note">Tell the client the total above. It will be pre-filled in the payment step.</div>
+                </div>
+
+                <div id="fee-no-match" class="fee-no-match hidden">
+                    Select a category and premise type to see the statutory fee.
+                </div>
+            </section>
+
+            <div class="form-actions">
+                <button type="submit" id="submit-btn" class="btn-primary">Finalize Inspection</button>
+            </div>
+        </form>
+
+        <!-- Payment Overlay (Post-PDF) -->
+        <div id="payment-overlay" class="overlay hidden">
+            <div class="overlay-content payment-card fade-in">
+                <div class="payment-header">
+                    <div class="icon-circle success">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+                    </div>
+                    <h2>Payment Details</h2>
+                    <p id="payment-client-name" class="payment-subtitle">Business Name</p>
+                </div>
+
+                <div class="payment-body">
+                    <div class="form-group">
+                        <label>Amount (KES)</label>
+                        <input type="number" id="payment-amount" placeholder="Auto-filled from Step 10" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label>M-Pesa / Receipt Ref</label>
+                        <input type="text" id="payment-ref" placeholder="ABC123XYZ">
+                    </div>
+
+                    <div class="payment-actions">
+                        <button id="btn-mark-paid" class="btn-primary success-btn">Mark as Paid</button>
+                        <button id="btn-mark-unpaid" class="btn-text danger-btn">Mark as Unpaid (Overdue)</button>
+                    </div>
+                </div>
+
+                <div class="payment-footer">
+                    <button id="btn-close-payment" class="btn-text">Cancel & Close</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="success-overlay" class="overlay hidden">
+            <div class="success-card">
+                <div class="checkmark">✅</div>
+                <h2>Inspection Submitted!</h2>
+                <p>Report saved successfully.</p>
+                <div class="success-actions">
+                    <button class="btn-primary" id="btn-generate-pdf">Generate PDF Report</button>
+                    <button class="btn-success-outline" id="btn-email-report">Email Report to Client</button>
+                    <button class="btn-success-text" onclick="location.reload()">Start New Inspection</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- History Section (Hidden by default) -->
+        <div id="history-section" class="hidden fade-in">
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <h2 style="margin-bottom: 0;">My Inspection History</h2>
+                    <button class="btn-text" id="btn-refresh-history">🔄 Refresh</button>
+                </div>
+                <div id="history-list" class="history-list">
+                    <div style="text-align: center; padding: 2rem; color: #64748b;">Loading history...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Navigation -->
+        <nav class="bottom-nav">
+            <button class="nav-btn active" id="nav-new">
+                <span class="nav-icon">📝</span>
+                <span class="nav-label">New Form</span>
+            </button>
+            <button class="nav-btn" id="nav-history">
+                <span class="nav-icon">📚</span>
+                <span class="nav-label">My History</span>
+            </button>
+        </nav>
+    </div>
+    <script src="src/fee_data.js"></script>
+    <script src="src/app.js"></script>
+</body>
+</html>

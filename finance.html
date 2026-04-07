@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finance Dashboard - Nairobi Inspection System</title>
+    <link rel="stylesheet" href="src/style.css">
+    <link rel="icon" type="image/png" href="src/nairobi_logo.png">
+    <!-- Lucide for icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="admin-body">
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <img src="src/nairobi_logo.png" alt="Logo" class="sidebar-logo">
+            <div class="sidebar-title">Finance Panel</div>
+        </div>
+        
+        <ul class="nav-list">
+            <li class="nav-item active" data-tab="overview">📊 Revenue Overview</li>
+            <li class="nav-item" data-tab="payments">💰 Collections</li>
+            <li class="nav-item" data-tab="overdue">⚠️ Overdue Accounts</li>
+        </ul>
+
+        <div style="margin-top: auto;">
+            <div id="header-user-name" style="font-size: 0.85rem; margin-bottom: 0.5rem; opacity: 0.8;">Finance Manager</div>
+            <button id="btn-logout" class="btn-primary" style="width: 100%; background: #ef4444;">Logout</button>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <div class="admin-header">
+            <h1 id="tab-title">Revenue Overview</h1>
+            <div id="action-btn-area">
+                <button class="btn-primary" onclick="window.print()" style="background:#4b5563;">🖨️ Print Statement</button>
+            </div>
+        </div>
+
+        <!-- Overview Tab -->
+        <section id="overview" class="tab-content active">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>Total Collected</h3>
+                    <div class="value" id="stat-total-revenue" style="color: #10b981;">KES 0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Total Outstanding</h3>
+                    <div class="value" id="stat-total-outstanding" style="color: #ef4444;">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Recent Transactions</h3>
+                    <div class="value" id="stat-recent-count">0</div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2>Live Revenue Feed</h2>
+                <div class="data-table-container">
+                    <table id="recent-collections-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Business</th>
+                                <th>Amount (KES)</th>
+                                <th>Reference</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Collections Tab -->
+        <section id="payments" class="tab-content">
+            <div class="card">
+                <h2>All Collections</h2>
+                <div class="data-table-container">
+                    <table id="collections-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Business</th>
+                                <th>Amount</th>
+                                <th>Receipt No.</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Overdue Tab -->
+        <section id="overdue" class="tab-content">
+            <div class="card">
+                <h2>Pending Payments</h2>
+                <div class="data-table-container">
+                    <table id="overdue-table">
+                        <thead>
+                            <tr>
+                                <th>Business</th>
+                                <th>Inspection Date</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- App Scripts -->
+    <script src="src/config.js"></script>
+    <script src="src/activity.js"></script>
+    <script src="src/auth.js"></script>
+    <script src="src/finance.js"></script>
+</body>
+</html>

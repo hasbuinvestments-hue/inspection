@@ -1,0 +1,80 @@
+{
+  "sheets": [
+    {
+      "name": "PRIMARY",
+      "rows": 17767
+    },
+    {
+      "name": "Sheet2",
+      "rows": 17767
+    },
+    {
+      "name": "Dagoretti North",
+      "rows": 2446
+    },
+    {
+      "name": "Dagoretti South",
+      "rows": 230
+    },
+    {
+      "name": "Embakasi Central",
+      "rows": 161
+    },
+    {
+      "name": "Embakasi East",
+      "rows": 996
+    },
+    {
+      "name": "Embakasi North",
+      "rows": 91
+    },
+    {
+      "name": "Embakasi South",
+      "rows": 1358
+    },
+    {
+      "name": "Embakasi West",
+      "rows": 231
+    },
+    {
+      "name": "Kamkunji",
+      "rows": 525
+    },
+    {
+      "name": "Kasarani",
+      "rows": 694
+    },
+    {
+      "name": "Kibra",
+      "rows": 525
+    },
+    {
+      "name": "Langata",
+      "rows": 1368
+    },
+    {
+      "name": "Makadara",
+      "rows": 741
+    },
+    {
+      "name": "Mathare",
+      "rows": 53
+    },
+    {
+      "name": "Roysambu",
+      "rows": 594
+    },
+    {
+      "name": "Ruaraka",
+      "rows": 475
+    },
+    {
+      "name": "Starehe",
+      "rows": 3929
+    },
+    {
+      "name": "Westlands",
+      "rows": 3350
+    }
+  ]
+}
